@@ -6,7 +6,6 @@ export function bfs(board, start, goal){
     console.log("start")
     while(queue){
         var curNode = queue.shift();
-        console.log("do curnode == goal")
         if(curNode === goal){
             return visited;
         }

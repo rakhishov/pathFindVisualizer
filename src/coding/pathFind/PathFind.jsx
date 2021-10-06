@@ -2,31 +2,42 @@ import React, {Component} from "react";
 import {bfs} from "../algorithm/bfs"
 import Node from "./node/Node"
 import "./PathFind.css"
-import { Button } from "react-bootstrap";
+import Button from 'react-bootstrap/Button';
+import {dfs} from "../algorithm/dfs"
+import 'bootstrap/dist/css/bootstrap.min.css';
+
 
 const numOfRows = 20;
-const numOfColumns = 40;
+const numOfColumns = 50;
 
 export default class PathFind extends Component{
     constructor(){
         super();
         this.state = {
             board: [],
-            STARTNODE_ROW: 5,
-            STARTNODE_COL: 5,
-            GOALNODE_ROW: 14,
-            GOALNODE_COL: 15,
+            STARTNODE_ROW: 10,
+            STARTNODE_COL: 15,
+            GOALNODE_ROW: 16,
+            GOALNODE_COL: 30,
             mouseIsPressed: false,
-            isRunning: false
+            isRunning: false,
+            isBoardClean: true,
+            isStartNode: false,
+            isGoalNode: false,
+            numOfExpandedNodes: 0,
+            numOfPathNodes: 0
         }
     }
+    //after initialization of web, first function that will be executed
     componentDidMount(){
         this.setState({board: this.getInitBoard()});
     }
+    
     handleMouseDown(row, col){
         const{board} = this.state;
         const newBoard = wallGenerate(board, row, col);
         this.setState({board: newBoard, mouseIsPressed: true});
+        console.log('c');
     }
 
     handleMouseUp(){
@@ -35,6 +46,7 @@ export default class PathFind extends Component{
 
     handleMouseEnter(row, col){
         if(this.state.mouseIsPressed){
+            
             const newBoard = wallGenerate(this.state.board, row, col);
             this.setState({board: newBoard});
         }
@@ -67,22 +79,40 @@ export default class PathFind extends Component{
 
 
 
-    bfsearch(){
-        var{board} = this.state;
-        var start = board[this.state.STARTNODE_ROW][this.state.STARTNODE_COL];
-        var goal = board[this.state.GOALNODE_ROW][this.state.GOALNODE_COL];
-        var visited = bfs(board, start, goal);
-        console.log(visited);
-        var way = shortWay(goal);
-        console.log(way);
-        this.visualiseBfs(visited, way);
-        console.log(board);
+    search(algo){
+        if(this.state.isBoardClean){
+            this.setState({isBoardClean: false});
+            this.setState({isRunning: true});
+            var{board} = this.state;
+            console.log(board);
+            var start = board[this.state.STARTNODE_ROW][this.state.STARTNODE_COL];
+            var goal = board[this.state.GOALNODE_ROW][this.state.GOALNODE_COL];
+            var visited;
+            switch(algo){
+                case "bfs":
+                    visited = bfs(board, start, goal);
+                    break;
+                case "dfs":
+                    visited = dfs(board, start, goal);
+                    break;
+                default:
+                    console.log("Nice");
+                }  
+                
+            var way = shortWay(goal);
+            this.visualise(visited, way);
+            setTimeout(()=>{
+                this.setState({isRunning: false});
+            }, 2000);
+        }
+        
     }
     
     
     
-    visualiseBfs(visited, path){
+    visualise(visited, path){
         for(var i = 0; i<=visited.length; i++){
+            this.setState({numOfExpandedNodes: visited.length, numOfPathNodes: path.length+1});
             if(i===visited.length){
                 setTimeout(()=>{
                     this.animatePath(path)
@@ -90,14 +120,36 @@ export default class PathFind extends Component{
                 return;
             }
             const node = visited[i];
-            setTimeout(()=>{
-                document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-visited';
-            }, 10*i)
+            if(node.isStart){
+                continue;
+            }
+            else{
+                setTimeout(()=>{
+                    document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-visited';
+                }, 10*i)
+            }
+            
         }
     }
     
-    
-    
+    clearGrid(){
+        if(!this.state.isRunning){
+            const {board} = this.state;
+            for(var i = 0; i<board.length; i++){
+                for(var j = 0; j<board[0].length; j++){
+                    const node = board[i][j];
+                    if(!node.isStart && !node.isGoal){
+                        document.getElementById(`node-${node.row}-${node.col}`).className = 'node';
+                        node.isVisited = false;
+                    }
+                    if(node.isWall){
+                        node.isWall = false;
+                    }
+                }
+            }
+            this.setState({isBoardClean: true, numOfExpandedNodes: 0, numOfPathNodes: 0});
+        }
+    }
     
     animatePath(path){
         for(var i = 0; i<path.length; i++){
@@ -119,8 +171,9 @@ export default class PathFind extends Component{
         const{board, mouseIsPressed} = this.state;
         return (
           <>
-            <div className="grid">
-                
+           <span style = {{marginRight: "510px"}} >Expanded nodes: {this.state.numOfExpandedNodes}</span>
+                <span style = {{marginLeft: "510px"}}>Path Length: {this.state.numOfPathNodes}</span>
+            <div className = "grid">
               {board.map((row, rowIdx) => {
                 return (
                   <div key={rowIdx}>
@@ -151,8 +204,12 @@ export default class PathFind extends Component{
                   
                 );
               })}
-            <Button variant="outline-primary" onClick={() => this.bfsearch()}>BFS</Button>
-            <Button variant="outline-primary" onClick={() => this.changeTheme()}>Dark Mode</Button>
+              <div class="buttons">
+            <Button variant="outline-primary" onClick={() => this.search("dfs")}>DFS</Button>{' '}
+            <Button variant="outline-primary" onClick={() => this.search("bfs")}>BFS</Button>{' '}
+            <Button variant="outline-primary" onClick={() => this.clearGrid()}>Clear Grid</Button>{' '}
+            <Button variant="outline-primary" onClick={() => this.changeTheme()}>Dark Mode</Button>{' '}
+              </div>
             </div>
           </>
         );
@@ -161,7 +218,6 @@ export default class PathFind extends Component{
 
 const wallGenerate = (board, row, col)=>{
     const newBoard = board.slice();
-    console.log(row + " " + col);
     const node = newBoard[row][col];
     if(!node.isStart && !node.isGoal){
         const newNode = {
@@ -176,10 +232,10 @@ const wallGenerate = (board, row, col)=>{
 function shortWay(goal){
     var shortPath = [];
     var currNode = goal;
-    while(currNode.parent!==null){
-        shortPath.unshift(currNode)
+    while(currNode.parent.parent!==null){
         currNode = currNode.parent;
+        shortPath.unshift(currNode)
+        
     }
-    shortPath.unshift(currNode);
     return shortPath;
 }
