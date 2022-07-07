@@ -84,7 +84,6 @@ export default class PathFind extends Component{
             this.setState({isBoardClean: false});
             this.setState({isRunning: true});
             var{board} = this.state;
-            console.log(board);
             var start = board[this.state.STARTNODE_ROW][this.state.STARTNODE_COL];
             var goal = board[this.state.GOALNODE_ROW][this.state.GOALNODE_COL];
             var visited;
@@ -98,12 +97,18 @@ export default class PathFind extends Component{
                 default:
                     console.log("Nice");
                 }  
-                
-            var way = shortWay(goal);
-            this.visualise(visited, way);
-            setTimeout(()=>{
-                this.setState({isRunning: false});
-            }, 2000);
+            
+            if(visited === 0){
+                alert("There is no path");
+                console.log("There is no way");
+            }
+            else{
+                var way = shortWay(goal);
+                this.visualise(visited, way);
+                setTimeout(()=>{
+                    this.setState({isRunning: false});
+                }, 2000);
+            }
         }
         
     }
@@ -156,7 +161,7 @@ export default class PathFind extends Component{
             const node = path[i];
             setTimeout(()=>{
                 document.getElementById(`node-${node.row}-${node.col}`).className = 'node node-path';
-            }, 50*i);
+            }, 10*i);
         }
     }
     changeTheme(){
@@ -173,6 +178,22 @@ export default class PathFind extends Component{
           <>
            <span style = {{marginRight: "510px"}} >Expanded nodes: {this.state.numOfExpandedNodes}</span>
                 <span style = {{marginLeft: "510px"}}>Path Length: {this.state.numOfPathNodes}</span>
+            <div className="instructions">
+                <div className = "instructions-item">
+                    unvisited node
+                </div>
+                <div className = "instructions-item">
+                
+                    visited node
+                </div>
+                <div className = "instructions-item">
+                    start
+                </div>
+                <div className = "instructions-item">
+                
+                    goal
+                </div>
+            </div>
             <div className = "grid">
               {board.map((row, rowIdx) => {
                 return (
@@ -228,6 +249,8 @@ const wallGenerate = (board, row, col)=>{
     }
     return newBoard;
 }
+
+
 
 function shortWay(goal){
     var shortPath = [];

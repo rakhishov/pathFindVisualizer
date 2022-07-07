@@ -3,9 +3,11 @@
 export function bfs(board, start, goal){
     var visited = [];
     var queue = [start];
-    console.log("start")
     while(queue){
         var curNode = queue.shift();
+        if(curNode === undefined){
+            return 0;
+        }
         if(curNode === goal){
             return visited;
         }

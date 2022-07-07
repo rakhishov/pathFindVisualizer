@@ -3,7 +3,10 @@ export function dfs(board, start, goal){
     var stack = [start];
     while(stack){
         var curNode = stack.pop()
-        if(curNode==goal){
+        if(curNode === undefined){
+            return 0;
+        }
+        if(curNode===goal){
             return visited;
         }
         if(!curNode.isWall && (!curNode.isVisited||curNode.isStart)){
