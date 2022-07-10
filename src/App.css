@@ -24,9 +24,15 @@
 .App-link {
   color: #09d3ac;
 }
-
+.buttons{
+  padding-top: 1%;
+}
 .instructions{
   display: flex;
   justify-content: center;
   gap: 50px;
+}
+
+.instructions-item{
+  white-space: nowrap ;
 }

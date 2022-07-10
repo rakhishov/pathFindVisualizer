@@ -7,7 +7,7 @@ import {dfs} from "../algorithm/dfs"
 import 'bootstrap/dist/css/bootstrap.min.css';
 
 
-const numOfRows = 20;
+const numOfRows = 25;
 const numOfColumns = 50;
 
 export default class PathFind extends Component{
@@ -15,17 +15,18 @@ export default class PathFind extends Component{
         super();
         this.state = {
             board: [],
-            STARTNODE_ROW: 10,
-            STARTNODE_COL: 15,
+            startnode_row: 10,
+            startnode_col: 15,
             GOALNODE_ROW: 16,
             GOALNODE_COL: 30,
             mouseIsPressed: false,
             isRunning: false,
             isBoardClean: true,
-            isStartNode: false,
-            isGoalNode: false,
             numOfExpandedNodes: 0,
-            numOfPathNodes: 0
+            numOfPathNodes: 0,
+            chooseStart: false,
+            chooseGoal: false,
+            changeWall: true
         }
     }
     //after initialization of web, first function that will be executed
@@ -34,20 +35,51 @@ export default class PathFind extends Component{
     }
     
     handleMouseDown(row, col){
-        const{board} = this.state;
-        const newBoard = wallGenerate(board, row, col);
-        this.setState({board: newBoard, mouseIsPressed: true});
-        console.log('c');
+        const{board, 
+            chooseStart, 
+            startnode_row, 
+            startnode_col, 
+            isBoardClean, 
+            chooseGoal, 
+            GOALNODE_ROW, 
+            GOALNODE_COL,
+            changeWall} = this.state;
+
+        var newBoard;
+        if(chooseStart === true && isBoardClean === true){
+            newBoard = changeStart(board, row, col);
+            const lastStartNode = newBoard[startnode_row][startnode_col]
+            lastStartNode.isStart = false;
+            this.setState({board: newBoard, startnode_row: row, startnode_col: col, chooseStart: false});
+        }
+        else if(chooseGoal === true && isBoardClean === true){
+            newBoard = changeGoal(board, row, col);
+            const lastStartNode = newBoard[GOALNODE_ROW][GOALNODE_COL];
+            lastStartNode.isGoal = false;
+            this.setState({board: newBoard, GOALNODE_ROW: row, GOALNODE_COL: col, chooseGoal: false});
+        }
+        else if(isBoardClean === true){
+            if(board[row][col].isWall === false){
+                this.setState({changeWall: true})
+                newBoard = wallGenerate(board, row, col, true);
+            }
+            else{
+                this.setState({changeWall: false})
+                newBoard = wallGenerate(board, row, col, false);
+            }
+            this.setState({board: newBoard, mouseIsPressed: true});
+        }
     }
 
     handleMouseUp(){
-        this.setState({mouseIsPressed: false});
+        this.setState({mouseIsPressed: false, changeWall: true});
     }
 
     handleMouseEnter(row, col){
+        const {changeWall} = this.state;
         if(this.state.mouseIsPressed){
             
-            const newBoard = wallGenerate(this.state.board, row, col);
+            const newBoard = wallGenerate(this.state.board, row, col, changeWall);
             this.setState({board: newBoard});
         }
     }
@@ -56,7 +88,7 @@ export default class PathFind extends Component{
         return {
             row,
             col,
-            isStart: row === this.state.STARTNODE_ROW && col===this.state.STARTNODE_COL,
+            isStart: row === this.state.startnode_row && col===this.state.startnode_col,
             isGoal: row === this.state.GOALNODE_ROW && col===this.state.GOALNODE_COL,
             isWall: false,
             isVisited: false,
@@ -84,7 +116,7 @@ export default class PathFind extends Component{
             this.setState({isBoardClean: false});
             this.setState({isRunning: true});
             var{board} = this.state;
-            var start = board[this.state.STARTNODE_ROW][this.state.STARTNODE_COL];
+            var start = board[this.state.startnode_row][this.state.startnode_col];
             var goal = board[this.state.GOALNODE_ROW][this.state.GOALNODE_COL];
             var visited;
             switch(algo){
@@ -100,15 +132,12 @@ export default class PathFind extends Component{
             
             if(visited === 0){
                 alert("There is no path");
-                console.log("There is no way");
             }
             else{
                 var way = shortWay(goal);
                 this.visualise(visited, way);
-                setTimeout(()=>{
-                    this.setState({isRunning: false});
-                }, 2000);
             }
+            this.setState({isRunning: false})
         }
         
     }
@@ -164,14 +193,6 @@ export default class PathFind extends Component{
             }, 10*i);
         }
     }
-    changeTheme(){
-        if(document.body.classList.length===0){
-            document.body.classList.add("App-black");
-        }
-        else{
-            document.body.classList.remove("App-black");
-        }
-    }
     render() {
         const{board, mouseIsPressed} = this.state;
         return (
@@ -180,18 +201,28 @@ export default class PathFind extends Component{
                 <span style = {{marginLeft: "510px"}}>Path Length: {this.state.numOfPathNodes}</span>
             <div className="instructions">
                 <div className = "instructions-item">
-                    unvisited node
+                    <span className="square node-unvisited"></span>
+                    Unvisited Node
                 </div>
                 <div className = "instructions-item">
-                
-                    visited node
+                    <span className="square node-visited"></span>
+                    Visited Node
                 </div>
                 <div className = "instructions-item">
-                    start
+                    <span className="square n-start"></span>
+                    Start Node
                 </div>
                 <div className = "instructions-item">
-                
-                    goal
+                    <span className="square n-goal"></span>
+                    Goal Node
+                </div>
+                <div className = "instructions-item">
+                    <span className="square node-wall"></span>
+                    Wall Node
+                </div>
+                <div className = "instructions-item">
+                    <span className="square node-path"></span>
+                    Path
                 </div>
             </div>
             <div className = "grid">
@@ -229,7 +260,9 @@ export default class PathFind extends Component{
             <Button variant="outline-primary" onClick={() => this.search("dfs")}>DFS</Button>{' '}
             <Button variant="outline-primary" onClick={() => this.search("bfs")}>BFS</Button>{' '}
             <Button variant="outline-primary" onClick={() => this.clearGrid()}>Clear Grid</Button>{' '}
-            <Button variant="outline-primary" onClick={() => this.changeTheme()}>Dark Mode</Button>{' '}
+            <Button variant="outline-primary" onClick={() => this.setState({chooseStart: true, chooseGoal: false})}>Choose Start</Button>{' '}
+            <Button variant="outline-primary" onClick={() => this.setState({chooseStart: false, chooseGoal: true})}>Choose Goal</Button>{' '}
+             
               </div>
             </div>
           </>
@@ -237,19 +270,57 @@ export default class PathFind extends Component{
       }
     }
 
-const wallGenerate = (board, row, col)=>{
+const wallGenerate = (board, row, col, cond)=>{
     const newBoard = board.slice();
     const node = newBoard[row][col];
     if(!node.isStart && !node.isGoal){
-        const newNode = {
-            ...node,
-            isWall: !node.isWall,
-        };
+        var newNode;
+        if(cond){
+            newNode = {
+                ...node,
+                isWall: true,
+            };
+        }
+        else{
+            newNode = {
+                ...node,
+                isWall: false
+            };
+        }
         newBoard[row][col] = newNode;
     }
+
+    
     return newBoard;
 }
 
+const changeStart = (board, row, col)=>{
+    const newBoard = board.slice()
+    const node = newBoard[row][col]
+    if(!node.isGoal && !node.isWall){
+        const newNode = {
+            ...node,
+            isStart: true
+        }
+        newBoard[row][col] = newNode;
+    }
+    document.querySelector(".node-start").classList.remove("node-start")
+    return newBoard;
+}
+
+const changeGoal = (board, row, col)=>{
+    const newBoard = board.slice()
+    const node = newBoard[row][col]
+    if(!node.isStart && !node.isWall){
+        const newNode = {
+            ...node,
+            isGoal: true
+        }
+        newBoard[row][col] = newNode;
+    }
+    document.querySelector(".node-goal").classList.remove("node-goal")
+    return newBoard;
+}
 
 
 function shortWay(goal){
