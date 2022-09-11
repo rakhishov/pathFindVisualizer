@@ -1,3 +1,6 @@
+## Demo
+
+![demo of project](https://github.com/rakhishov/pathFindVisualizer/blob/main/demo.gif)
 
 ## Available Scripts
 
