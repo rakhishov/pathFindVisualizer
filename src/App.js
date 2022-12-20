@@ -7,7 +7,8 @@ function App() {
   return (
     <>
     <div className="App-white">
-      <PathFind></PathFind>
+      <div className=''>Pathfind Visualizer</div>
+      <PathFind/>
     </div>
     </>
   );

@@ -197,9 +197,11 @@ export default class PathFind extends Component{
         const{board, mouseIsPressed} = this.state;
         return (
           <>
-           <span style = {{marginRight: "510px"}} >Expanded nodes: {this.state.numOfExpandedNodes}</span>
-                <span style = {{marginLeft: "510px"}}>Path Length: {this.state.numOfPathNodes}</span>
-            <div className="instructions">
+          <div className="instructions results">
+            <div className='res-item'>Expanded nodes: {this.state.numOfExpandedNodes}</div>
+            <div className='res-item'>Path Length: {this.state.numOfPathNodes}</div>
+          </div>
+           <div className="instructions">
                 <div className = "instructions-item">
                     <span className="square node-unvisited"></span>
                     Unvisited Node
@@ -257,12 +259,12 @@ export default class PathFind extends Component{
                 );
               })}
               <div class="buttons">
-            <Button variant="outline-primary" onClick={() => this.search("dfs")}>DFS</Button>{' '}
-            <Button variant="outline-primary" onClick={() => this.search("bfs")}>BFS</Button>{' '}
-            <Button variant="outline-primary" onClick={() => this.clearGrid()}>Clear Grid</Button>{' '}
-            <Button variant="outline-primary" onClick={() => this.setState({chooseStart: true, chooseGoal: false})}>Choose Start</Button>{' '}
-            <Button variant="outline-primary" onClick={() => this.setState({chooseStart: false, chooseGoal: true})}>Choose Goal</Button>{' '}
-             
+            <Button variant="btn btn-success" onClick={() => this.search("dfs")}>DFS</Button>{' '}
+            <Button variant="btn btn-success" onClick={() => this.search("bfs")}>BFS</Button>{' '}
+            
+            <Button variant="btn btn-primary" onClick={() => this.setState({chooseStart: true, chooseGoal: false})}>Choose Start</Button>{' '}
+            <Button variant="btn btn-primary" onClick={() => this.setState({chooseStart: false, chooseGoal: true})}>Choose Goal</Button>{' '}
+            <Button variant="btn btn-danger" onClick={() => this.clearGrid()}>Clear Grid</Button>{' '}
               </div>
             </div>
           </>
