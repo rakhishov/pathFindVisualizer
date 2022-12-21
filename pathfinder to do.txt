@@ -1,6 +1,0 @@
-fix bug: fix bug with pick wall
-
-implement: 2 algorithms - A*, Dijkstra
-implement: choosing start node and goal node
-git: release github pages
-
